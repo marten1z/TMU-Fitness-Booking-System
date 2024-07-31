@@ -1,0 +1,282 @@
+#Marten Zaky - 501224012 - CPS 109 Assignment 1
+
+'''
+Hello there,
+
+    My CPS 109 assignment is going to entail creating a booking system for a 
+    sports center called “TMU Fitness”. Whereby there are different facilities 
+    within this center, namely; 2 Squash courts, 2 Tennis courts, 2 Basketball 
+    courts, a Swimming pool and a Gym. Obviously, each of the aforementioned 
+    facilities have a max capacity respectively. Therefore I will create a system 
+    to book these facilities, keep track of the capcity and store all info about 
+    the sports center's members. Each booking will be accompanied by the clients 
+    membershipID which can then be used to check the members/clients information. 
+    TMU Fitness is open between 06:00 and 23:00.
+    
+    The booking system will be able to:
+    •	Inform the user if a facility is occupied/at maximum capacity or not
+    •	Create/delete/display bookings
+    •   Enter new member details/display member information of a particular 
+        existing client
+    •	Additionally, can let user aware of how much more time until a particular
+        booking ends
+    
+    The maximum capacity for each of the facilities is as follows: 
+    Squash & Tennis court – 4 persons per court, Basketball court – 20 persons per 
+    court, Swimming pool - 15 persons, and lastly the Gym – 40 persons.
+    
+    NOTE: For the simplcity of this program, I will assume that every time the 
+    program is executed all values will be initialized/reset, that is, it will
+    NOT carry on NEW details/input from previous run of the program. I shall also 
+    assume that each member can/will only be able to have 1 booking under their 
+    unique membershipID at any given time. Moreover, it is assumed that the user 
+    who will be using this program is familiar/proficient with its use (i.e. a 
+    receptionist who has been trained to use it) thus I have not included any 
+    validation for a number of inputs as valid input is expected by default (for 
+    the simplicity of this program). For the simplicity of this program, ALL 
+    bookings will be 2hours long by default, no more no less and no automatic 
+    action wil be taken towards those bookings that have already happened/ended.
+    
+    The client information will be stored into a nested dictionary that will have
+    the following format: {"membershipID":{"name":"", "phone no.":int}...}
+    
+    The bookings will be stored into a nested dictionary that will have the
+    following format: {"membershipID":{"facility":"", "number of persons":int, 
+                        "end of time slot":"hh:mm"}...}
+    
+    Hope you enjoy using my program!
+'''
+
+#Importing the modules needed
+#'sys' will be used when the user would like to exit the program
+#'datetime' will be used for any time calculations and formating
+import sys
+import datetime
+
+#Initialization of dictionaries and global variables that we will use later on in the program
+facilities = {"Squash Court": {"max": 8, "current": 0}, "Tennis Court": {"max": 8, "current": 0}, "Basketball Court": {"max": 40, "current": 0}, "Swimming Pool": {"max": 15, "current": 0}, "Gym": {"max": 40, "current": 0}}
+clients = {}
+bookings = {"001":{"facility":"Gym", "number of persons": 2, "end of time slot":"13:00"}, "002":{"facility":"Gym", "number of persons": 3, "end of time slot":"15:30"}, "003":{"facility":"Squash Court", "number of persons": 4, "end of time slot":"07:30"}, "005":{"facility":"Swimming Pool", "number of persons": 6, "end of time slot":"14:00"}, "007":{"facility":"Gym", "number of persons": 12, "end of time slot":"16:30"}}
+members = bookings.keys()
+notdone = 0
+
+#Update the current capacity of each facility depending on current bookings already in the system
+for i in members:
+    facilities[bookings[i]["facility"]]["current"] += bookings[i]["number of persons"]
+
+#Function 1
+#Will check the availability of a particular facility, 
+#Takes the name of the facility as the input,
+#Returns the number of available capacity for that facility
+def availability(str):
+    avail_cap = facilities[str]["max"] - facilities[str]["current"]
+    return avail_cap
+
+#Function 2
+#Will calculate the time remaining until a particular booking will end
+#Takes in the facility name and the ending time of the booking as inputs
+#Compares the end time of the booking with the current system time
+def availablewhen(facility, timeend):
+    currenttime = datetime.datetime.now() #Current real world time of system
+    formating = datetime.datetime.strptime(currenttime.strftime("%H:%M"), "%H:%M")
+    endbookingtime = datetime.datetime.strptime(timeend, "%H:%M")
+    if formating < datetime.datetime.strptime(timeend, "%H:%M"):
+        timeleft = endbookingtime - formating
+        timeleft = str(timeleft)
+        return "This booking has got "+timeleft[7:-3]+"(HH:MM) left"
+    else:
+        return "This booking has already happened"
+
+#OUTPUT FILE
+#If file does not already exist then the file will be created
+#It will write to this file whenever told to later on in the main program
+#It will overwrite any content within this file previously
+o = open("cps109_a1_output.txt", "w")
+
+#INPUT FILE
+#Before the user starts to interact with the system, 
+#An input file will be used to read in the client info 
+#Store it into our clients dictionary that is initialized above
+clientslist = list()
+u = open("clientsinfo.txt", "r")
+lines = u.readlines()
+for line in lines:
+    clientslist.append(line.strip())
+for i in range(len(clientslist)):
+    clients[f"{i+1:03}"] = clientslist[i]
+
+
+
+#Main program
+print()
+print("=======Welcome To TMU's Sports Center Booking System=======")
+print()
+while notdone == 0: #To allow the user to complete more than one task if need be
+    print("\nPlease choose what you'd like to do now: ")
+    print("1. Enter new member's information")
+    print("2. Make a new booking")
+    print("3. Cancel an already existing booking")
+    print("4. Check current bookings in system")
+    print("5. Check availability of a particular facility")
+    print("6. Check client details")
+    print("7. Exit booking system")
+    print() #Empty prints for the aesthetic and organization of output
+    
+    selection = int(input("Please enter your choice number (1,2,3,4,5,6 or 7): ")) #Taking user's input and storing it in a variable
+    while selection<1 or selection>7: #Validating input
+        selection=int(input("Please enter a valid choice number, between 1 to 7: "))
+    print()
+    
+    if selection==1:
+        more = 1
+        while more == 1:
+            clientid = list(clients.keys()) #Creating list of keys in the clients dictionary
+            clientid.sort()
+            print("Entering new Member details")
+            name = str(input("Enter their name: "))
+            phone = int(input("Enter their cellphone number: "))
+            newinfo = {f"{int(clientid[-1])+1:03}":{"name":name, "phone no.":str(phone)}} #Client dictionary format and incrementing membershipID by 1
+            clients.update(newinfo) #Updating the clients dictionary with new member's info
+            askmore = input("Would you like to enter another new member's details?\n(Yes/No): ")
+            if askmore.lower() == "no":
+                more = 0 #Exiting while loop
+        o.write(f"New clients list: {clients}\n") #writing to output file
+        print()
+        print("New member details have been entered successfully!") #Output confirming to user what they have done
+    elif selection==2:
+        trymore = 1
+        print("Entering new booking details")
+        while trymore == 1:
+            membershipID = str(input("Enter their membershipID: "))
+            if membershipID not in clients.keys(): #Checking membershipID exists
+                issuetype = int(input("Error! To make a booking they must be a registered member first.\nIf you would like to re-enter their membershipID and continue with booking details, enter 1\nNOTE: To register them as a new memmber, exit first and then re-run system\nIf you would like to exit the system, enter 2: "))
+                if issuetype == 2:
+                    print("=======Thank you for using TMU's Sports Center Booking System=======")
+                    sys.exit()
+            elif membershipID in bookings.keys(): #Checking that membershipID has an existing booking
+                issuetype = int(input("Error! Each client is only entitled to have 1 booking at a time.\nIf you would like to enter a different membershipID and continue with booking details, enter 1\nIf you would like to exit the system, enter 2: "))
+                if issuetype == 2:
+                    print("=======Thank you for using TMU's Sports Center Booking System=======")
+                    sys.exit()
+            else:
+                trymore = 0
+        fullbooked = 0
+        while fullbooked == 0:
+            facilitychoose = input("Enter facility to be booked: ")
+            if facilities[facilitychoose]["max"] == facilities[facilitychoose]["current"]: #Checking capacity of the chosen facility
+                print("The facility you are trying to book is already at full capacity")
+                different = input("If would you like to choose another facility to book enter 1, otherwise if you would like to exit the program enter 2: ")
+                if different == 2:                
+                    print()
+                    print("=======Thank you for using TMU's Sports Center Booking System=======")
+                    sys.exit()
+            else:
+                fullbooked = 1
+                reduce = 0
+                while reduce == 0:
+                    numpersons = int(input("Enter number of persons part of this booking: "))
+                    if (facilities[facilitychoose]["max"] - facilities[facilitychoose]["current"]) < numpersons:
+                        availablecap = facilities[facilitychoose]["max"] - facilities[facilitychoose]["current"]
+                        print("There isn't enough capacity for these number of people in this facility\nAvailable capacity is", availablecap)
+                        toomany = input("If would you like to reduce the number of persons for the booking enter 1, otherwise if you would like to exit the program enter 2: ")
+                        if toomany == 2:
+                            print()
+                            print("=======Thank you for using TMU's Sports Center Booking System=======")
+                            sys.exit()
+                    else:
+                        reduce = 1
+                okaytime = 0
+                while okaytime == 0:
+                    timeend = input("Enter end time of the time slot for the booking in the form 'hh:mm': ")
+                    timestart = str(datetime.datetime.strptime(timeend, "%H:%M") - datetime.datetime.strptime('02:00', "%H:%M")) #Time start of booking is 2hours before time end of the booking
+                    formated = timestart[:-3]
+                    if datetime.datetime.strptime(timeend, "%H:%M") > datetime.datetime.strptime('23:00', "%H:%M") or datetime.datetime.strptime(formated, "%H:%M") < datetime.datetime.strptime('06:00', "%H:%M"):
+                        anothertime = int(input("TMU fitness will be closed during your booking time.\nIf you would like choose a different time enter 1, otherwise if you would like to exit the program enter 2: "))
+                        if anothertime == 2:
+                            okaytime = 1
+                            print()
+                            print("=======Thank you for using TMU's Sports Center Booking System=======")
+                            sys.exit()
+                    else:
+                        okaytime = 1
+        newbooking = {membershipID:{"facility":facilitychoose, "number of persons":numpersons, "end of time slot":timeend}}
+        bookings.update(newbooking) #Updating bookings list with the new validated booking
+        facilities[facilitychoose]["current"] += numpersons
+        o.write(f"New bookings list: {bookings}\n")
+        print("Your booking creation was successful!")
+    elif selection==3:
+        trying = 1
+        print("Canceling a booking")
+        while trying == 1:
+            deleteinfo = input("Kindly enter the client's membershipID used for the booking that needs to be cancelled: ")
+            #MembershipID is the key of the bookings dictionary therfore needed to delete the key:value pair
+            confirm = input("Are you sure you would like to delete the booking with the membershipID "+deleteinfo+"?\nEnter 'yes' to do so or enter 'no' to exit the program\n(Yes/No): ")
+            if confirm.lower() == "yes":
+                try:
+                    facilities[bookings[deleteinfo]["facility"]]["current"] -=  bookings[deleteinfo]["number of persons"]
+                    del bookings[deleteinfo]#Permanently deletes that key:value pair from bookings
+                    trying = 0
+                    o.write(f"New bookings list: {bookings}\n")
+                    print("Your booking deletion was successful!")
+                except:
+                    again = input("ERROR! This membershipID does not have an existing booking, try again? (Yes/No)\n")
+                    if again.lower() == "no":
+                        trying = 0
+    elif selection==4:
+        print("Bookings currently in the system: ")
+        allornot = (input("If you would you like to view all booking currently in the system, enter 'all'\nIf you would you like to view the bookings for a particular facility, enter the name of the facility\nIf you would like to know how much longer until the end of a booking, enter 1\nInput: "))
+        #I will assume valid input is entered by the user here(Case sensitive if user inputs facility name and Valid facility name is correctly done)
+        if allornot.lower() == 'all':
+            o.write(f"Current bookings list in system: {bookings}\n")
+            print(bookings)
+        elif allornot == "1":
+            membershipID = input("Enter the membershipID used for the booking: ")
+            again = 0
+            while again == 0:
+                if membershipID not in bookings.keys():
+                    issuetype = int(input("Error! This membershipID does not have an existing booking\nIf you would like to enter a different membershipID, enter 1\nIf you would like to exit the system, enter 2: "))
+                    if issuetype == 2:
+                        print("=======Thank you for using TMU's Sports Center Booking System=======")
+                        sys.exit()
+                else:
+                    again = 1
+                    facilitybooked = bookings[membershipID]["facility"]
+                    time = bookings[membershipID]["end of time slot"]
+                    availablewhen(facilitybooked, time) #Using Function 2
+                    o.write(f"Booking number: {membershipID}\n{(availablewhen(facilitybooked, time))}")
+        else:
+            for i in members: #Loops across all bookings and only prints those booked for facility requested
+                if bookings[i]["facility"] == allornot:
+                    o.write(f"Bookings list of {allornot}: {bookings[i]}\n")
+                    print(bookings[i])
+    elif selection==5:
+        print("Checking availability of a facility")
+        checkavail = str(input("Which facility's availability are you looking to check?\nSelect one facility (Squash Court, Tennis Court, Swimming Pool, Basketball Court, Gym): "))
+        #Once again assuming valid input is entered by the user here(Case sensitive and Valid facility name is correctly done)
+        o.write(f"There is availability for {str(availability(checkavail))} persons in the {checkavail}.\n")
+        print("There is availability for "+str(availability(checkavail))+" persons.") #Using Function 1
+    elif selection==6:
+        print("Checking client details")
+        wrongnum = 0
+        while wrongnum == 0:
+            membnum = str(input("Enter the clients 3-digit membershipID: "))
+            try:
+                print(clients[membnum])
+                o.write(f"The client information for the selected member is: {clients[membnum]}\n")
+                wrongnum = 1
+            except: #Validting that the membershipID exists within the system
+                retry = int(input("ERROR! The membershipID you entered does not exist.\nTo re-enter the membershipID, enter any integer. To exit the program, enter 2: "))
+                if retry == 2:
+                    wrongnum = 1
+                    print()
+                    print("=======Thank you for using TMU's Sports Center Booking System=======")
+                    sys.exit()
+                else:
+                    wrongnum = 0
+    elif selection==7:
+        o.close() #Will save the output file with amendments made and close it
+        print("Exiting program...")
+        print()
+        print("=======Thank you for using TMU's Sports Center Booking System=======")
+        print(f"Hello Trying{notdone: ^130}")
+        sys.exit() #Completely exits program as if program was closed
