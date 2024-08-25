@@ -1,9 +1,7 @@
-#Marten Zaky - 501224012 - CPS 109 Assignment 1
-
 '''
 Hello there,
 
-    My CPS 109 assignment is going to entail creating a booking system for a 
+    This project entails creating a booking system for a 
     sports center called “TMU Fitness”. Whereby there are different facilities 
     within this center, namely; 2 Squash courts, 2 Tennis courts, 2 Basketball 
     courts, a Swimming pool and a Gym. Obviously, each of the aforementioned 
